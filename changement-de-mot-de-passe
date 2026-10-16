@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Nouveau mot de passe — MaRoue</title>
+  <meta name="description" content="Choisissez un nouveau mot de passe pour votre compte MaRoue.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #101114;
+      --surface: #1b1d23;
+      --text: #f4f4f6;
+      --muted: #b7bac5;
+      --accent: #8b7cff;
+      --border: #30323c;
+      --danger: #ff8a95;
+      --ok: #6fe3a5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: radial-gradient(ellipse at top, #25203d 0%, var(--background) 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    main { width: 100%; max-width: 800px; margin: 0 auto; }
+
+    header { margin-bottom: 28px; text-align: center; }
+
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 40px); line-height: 1.25; }
+    h2 { margin-top: 0; font-size: 21px; line-height: 1.4; }
+
+    .subtitle, .muted { color: var(--muted); }
+
+    .panel {
+      margin: 18px auto;
+      max-width: 520px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+    }
+
+    a { color: #c2baff; overflow-wrap: anywhere; }
+
+    label { display: block; margin: 16px 0 6px; font-weight: 600; }
+
+    .field { position: relative; }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 12px 52px 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--background);
+      color: var(--text);
+      font: inherit;
+      line-height: 1.4;
+    }
+
+    input:focus { border-color: var(--accent); outline: none; }
+
+    .eye {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 6px 10px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .meter { height: 6px; margin-top: 10px; border-radius: 6px; background: var(--border); overflow: hidden; }
+    .meter i { display: block; width: 0; height: 100%; transition: width .3s, background .3s; }
+
+    .hint { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #101114;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter .15s, transform .1s;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: scale(.98); }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+    .msg { margin: 14px 0 0; min-height: 1.5em; font-size: 15px; }
+    .msg.err { color: var(--danger); }
+
+    .state { text-align: center; }
+    .state .icon { font-size: 40px; line-height: 1.2; }
+    .ok { color: var(--ok); }
+
+    footer { padding: 22px 0 8px; color: var(--muted); font-size: 14px; text-align: center; }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible { outline: 3px solid #c2baff; outline-offset: 4px; }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+
+<body>
+<main>
+  <header>
+    <h1>Nouveau mot de passe</h1>
+    <p class="subtitle">Application MaRoue</p>
+  </header>
+
+  <section class="panel state" id="s-load" aria-live="polite">
+    <div class="icon" aria-hidden="true">⏳</div>
+    <p class="muted">Vérification du lien en cours…</p>
+  </section>
+
+  <section class="panel" id="s-form" hidden>
+    <h2>Choisis ton nouveau mot de passe</h2>
+    <form id="f" novalidate>
+      <label for="p1">Nouveau mot de passe</label>
+      <div class="field">
+        <input id="p1" type="password" autocomplete="new-password" maxlength="72" required>
+        <button class="eye" id="eye" type="button" aria-label="Afficher ou masquer les mots de passe">👁</button>
+      </div>
+      <div class="meter" aria-hidden="true"><i id="bar"></i></div>
+      <p class="hint">10 caractères minimum, avec au moins une lettre et un chiffre.</p>
+
+      <label for="p2">Confirme le mot de passe</label>
+      <div class="field">
+        <input id="p2" type="password" autocomplete="new-password" maxlength="72" required>
+      </div>
+
+      <p class="msg err" id="m" role="alert"></p>
+      <button class="btn" id="go" type="submit">Enregistrer le mot de passe</button>
+    </form>
+  </section>
+
+  <section class="panel state" id="s-ok" hidden aria-live="polite">
+    <div class="icon ok" aria-hidden="true">✓</div>
+    <h2>Mot de passe modifié</h2>
+    <p class="muted">Ton mot de passe a bien été changé. Tu peux fermer cette page, retourner dans l’application MaRoue et te connecter avec le nouveau mot de passe.</p>
+  </section>
+
+  <section class="panel state" id="s-bad" hidden aria-live="polite">
+    <div class="icon" aria-hidden="true">⚠️</div>
+    <h2>Lien invalide ou expiré</h2>
+    <p class="muted">Ce lien de réinitialisation n’est plus valide : il ne fonctionne qu’une fois et pendant une durée limitée.
+      Retourne dans l’application MaRoue, ouvre la page « Compte », puis appuie sur « Mot de passe oublié ? » pour recevoir un nouveau lien.</p>
+  </section>
+
+  <footer>
+    MaRoue — Réinitialisation du mot de passe<br>
+    <a href="https://mrwolfflw.github.io/MaRoue-suppression-compte/politique-de-confidentialit%C3%A9">Politique de confidentialité</a> ·
+    <a href="https://mrwolfflw.github.io/MaRoue-suppression-compte/CGU">CGU</a>
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  // Clé publique (publishable) : elle peut être visible, la sécurité repose sur Supabase.
+  const SUPABASE_URL = "https://uxxgggpprqaibcmpteym.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_krV91g60UIa82LFaZ_i5xg_tKEckC4-";
+
+  const $ = id => document.getElementById(id);
+  const initialHash = location.hash;
+  const linkError = /error(_code|_description)?=/.test(initialHash);
+  const isRecovery = /type=recovery/.test(initialHash);
+  let state = "load";
+
+  function show(name) {
+    state = name;
+    ["load", "form", "ok", "bad"].forEach(n => { $("s-" + n).hidden = n !== name; });
+    if (name === "form") $("p1").focus();
+  }
+
+  const okPw = p => p.length >= 10 && /[a-zA-Z]/.test(p) && /\d/.test(p);
+  const score = p => (p.length >= 10) + (p.length >= 14) + (/[a-z]/.test(p) && /[A-Z]/.test(p)) + /\d/.test(p) + /[^a-zA-Z0-9]/.test(p);
+
+  let sb = null;
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: true }
+    });
+  } catch (e) { /* script bloqué ou hors ligne */ }
+
+  if (!sb || linkError || !isRecovery) {
+    show("bad");
+  } else {
+    sb.auth.onAuthStateChange((event, session) => {
+      if (state === "load" && (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session))) show("form");
+    });
+    // Si aucun jeton valide n'est reconnu au bout de quelques secondes : lien invalide.
+    setTimeout(() => { if (state === "load") show("bad"); }, 6000);
+  }
+
+  $("p1").addEventListener("input", () => {
+    const sc = score($("p1").value), bar = $("bar");
+    bar.style.width = sc * 20 + "%";
+    bar.style.background = sc < 3 ? "#ff6b78" : sc < 5 ? "#f5b94a" : "#6fe3a5";
+  });
+
+  $("eye").addEventListener("click", () => {
+    const t = $("p1").type === "password" ? "text" : "password";
+    $("p1").type = t; $("p2").type = t;
+  });
+
+  $("f").addEventListener("submit", async e => {
+    e.preventDefault();
+    const m = $("m"), p = $("p1").value, btn = $("go");
+    m.textContent = "";
+    if (!okPw(p)) { m.textContent = "Mot de passe : 10 caractères minimum, avec au moins une lettre et un chiffre."; return; }
+    if (p !== $("p2").value) { m.textContent = "Les deux mots de passe ne sont pas identiques."; return; }
+    btn.disabled = true; btn.textContent = "Un instant…";
+    try {
+      const { error } = await sb.auth.updateUser({ password: p });
+      if (error) {
+        m.textContent = /same password|different from the old/i.test(error.message)
+          ? "Le nouveau mot de passe doit être différent de l’ancien."
+          : /session|expired|jwt/i.test(error.message)
+            ? "Ce lien a expiré. Demande un nouveau lien depuis l’application."
+            : "Impossible de modifier le mot de passe : " + error.message;
+      } else {
+        await sb.auth.signOut();
+        show("ok");
+      }
+    } catch (x) {
+      m.textContent = "Connexion impossible. Vérifie ton réseau et réessaie.";
+    }
+    btn.disabled = false; btn.textContent = "Enregistrer le mot de passe";
+  });
+</script>
+</body>
+</html>
