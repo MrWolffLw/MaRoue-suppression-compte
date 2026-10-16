@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Changement d’adresse e-mail — MaRoue</title>
+  <meta name="description" content="Changez l’adresse e-mail de votre compte MaRoue.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #101114;
+      --surface: #1b1d23;
+      --text: #f4f4f6;
+      --muted: #b7bac5;
+      --accent: #8b7cff;
+      --border: #30323c;
+      --danger: #ff8a95;
+      --ok: #6fe3a5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: radial-gradient(ellipse at top, #25203d 0%, var(--background) 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    main { width: 100%; max-width: 800px; margin: 0 auto; }
+
+    header { margin-bottom: 28px; text-align: center; }
+
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 40px); line-height: 1.25; }
+    h2 { margin-top: 0; font-size: 21px; line-height: 1.4; }
+
+    .subtitle, .muted { color: var(--muted); }
+
+    .panel {
+      margin: 18px auto;
+      max-width: 520px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+    }
+
+    a { color: #c2baff; overflow-wrap: anywhere; }
+
+    label { display: block; margin: 16px 0 6px; font-weight: 600; }
+
+    .field { position: relative; }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 12px 52px 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--background);
+      color: var(--text);
+      font: inherit;
+      line-height: 1.4;
+    }
+
+    input:focus { border-color: var(--accent); outline: none; }
+
+    .eye {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 6px 10px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .meter { height: 6px; margin-top: 10px; border-radius: 6px; background: var(--border); overflow: hidden; }
+    .meter i { display: block; width: 0; height: 100%; transition: width .3s, background .3s; }
+
+    .hint { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #101114;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter .15s, transform .1s;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: scale(.98); }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+
+    .msg { margin: 14px 0 0; min-height: 1.5em; font-size: 15px; }
+    .msg.err { color: var(--danger); }
+
+    .state { text-align: center; }
+    .state .icon { font-size: 40px; line-height: 1.2; }
+    .ok { color: var(--ok); }
+
+    footer { padding: 22px 0 8px; color: var(--muted); font-size: 14px; text-align: center; }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible { outline: 3px solid #c2baff; outline-offset: 4px; }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+
+<body>
+<main>
+  <header>
+    <h1>Changement d’adresse e-mail</h1>
+    <p class="subtitle">Application MaRoue</p>
+  </header>
+  <section class="panel state" id="s-load" aria-live="polite">
+    <div class="icon" aria-hidden="true">⏳</div>
+    
+    <p class="muted">Vérification de ta session…</p>
+  </section>
+  <section class="panel" id="s-form" hidden>
+    <h2>Changer mon adresse e-mail</h2>
+    <p class="muted">Adresse actuelle : <strong id="who"></strong></p>
+    <form id="f" novalidate>
+      <label for="e1">Nouvelle adresse e-mail</label>
+      <div class="field"><input id="e1" type="text" inputmode="email" autocomplete="email" maxlength="120" style="padding-right:14px" required></div>
+      <p class="hint">Un e-mail de confirmation te sera envoyé. L’adresse ne change qu’après validation du lien.</p>
+      <p class="msg err" id="m" role="alert"></p>
+      <button class="btn" id="go" type="submit">Envoyer l’e-mail de confirmation</button>
+    </form>
+  </section>
+  <section class="panel state" id="s-ok" hidden aria-live="polite">
+    <div class="icon" aria-hidden="true">✉️</div>
+    <h2>E-mail de confirmation envoyé</h2>
+    <p class="muted"><span id="sent"></span></p>
+  </section>
+  <section class="panel state" id="s-conf" hidden aria-live="polite">
+    <div class="icon ok" aria-hidden="true">✓</div>
+    <h2>Confirmation enregistrée</h2>
+    <p class="muted"><span id="confmsg"></span></p>
+  </section>
+  <section class="panel state" id="s-bad" hidden aria-live="polite">
+    <div class="icon" aria-hidden="true">⚠️</div>
+    <h2>Session invalide ou expirée</h2>
+    <p class="muted">Ce lien n’est plus valide ou a expiré. Retourne dans l’application MaRoue, ouvre la page « Compte » et appuie de nouveau sur « Changer mon adresse e-mail ».</p>
+  </section>
+
+  <footer>
+    MaRoue — Changement d’adresse e-mail<br>
+    <a href="https://mrwolfflw.github.io/MaRoue-suppression-compte/politique-de-confidentialit%C3%A9">Politique de confidentialité</a> ·
+    <a href="https://mrwolfflw.github.io/MaRoue-suppression-compte/CGU">CGU</a>
+  </footer>
+</main>
+
+<script>
+  // Clé publique (publishable) : elle peut être visible, la sécurité repose sur Supabase.
+  const SUPABASE_URL = "https://uxxgggpprqaibcmpteym.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_krV91g60UIa82LFaZ_i5xg_tKEckC4-";
+  const $ = id => document.getElementById(id);
+  // Le jeton transmis par l'application est dans le fragment (#t=...) : il n'est jamais envoyé au serveur.
+  // On le lit puis on l'efface aussitôt de la barre d'adresse.
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const TOKEN = hash.get("t");
+  history.replaceState(null, "", location.pathname + location.search);
+  const api = (path, opt = {}) => fetch(SUPABASE_URL + path, {
+    ...opt,
+    headers: { apikey: SUPABASE_KEY, Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" }
+  });
+  const SECTIONS = ["load", "form", "ok", "bad", "conf"];
+  function show(name) {
+    SECTIONS.forEach(n => { const el = $("s-" + n); if (el) el.hidden = n !== name; });
+    const f = document.querySelector("#s-form input"); if (name === "form" && f) f.focus();
+  }
+  async function errText(r) {
+    const j = await r.json().catch(() => ({}));
+    return (j.msg || j.message || j.error_description || "") + "";
+  }
+  const PAGE = location.origin + location.pathname;
+  const okMail = e => /^\S+@\S+\.\S+$/.test(e);
+  let CURRENT = "";
+
+  (async () => {
+    // Retour depuis le lien de confirmation envoyé par e-mail
+    if (!TOKEN && (hash.has("message") || hash.get("type") === "email_change" || hash.has("access_token"))) {
+      $("confmsg").textContent = /other email/i.test(hash.get("message") || "")
+        ? "Première confirmation enregistrée. Ouvre aussi le lien envoyé à l’autre adresse pour terminer le changement."
+        : "Ton adresse e-mail est confirmée. Tu peux fermer cette page et retourner dans l’application MaRoue.";
+      return show("conf");
+    }
+    if (!TOKEN) return show("bad");
+    try {
+      const r = await api("/auth/v1/user");
+      if (!r.ok) return show("bad");
+      CURRENT = (await r.json()).email || "";
+      $("who").textContent = CURRENT;
+      show("form");
+    } catch (e) { show("bad"); }
+  })();
+
+  $("f").addEventListener("submit", async e => {
+    e.preventDefault();
+    const m = $("m"), v = $("e1").value.trim(), btn = $("go");
+    m.textContent = "";
+    if (!okMail(v)) { m.textContent = "Adresse e-mail invalide."; return; }
+    if (v.toLowerCase() === CURRENT.toLowerCase()) { m.textContent = "C’est déjà ton adresse actuelle."; return; }
+    btn.disabled = true; btn.textContent = "Un instant…";
+    try {
+      const r = await api("/auth/v1/user?redirect_to=" + encodeURIComponent(PAGE), { method: "PUT", body: JSON.stringify({ email: v }) });
+      if (r.ok) {
+        $("sent").textContent = "Un e-mail a été envoyé à " + v + ". Ouvre le lien qu’il contient pour valider le changement. Selon la configuration, un second e-mail peut aussi être envoyé à ton ancienne adresse : valide-le également.";
+        show("ok"); return;
+      }
+      m.textContent = r.status === 401 || r.status === 403 ? "La session a expiré. Retourne dans l’application et relance le changement."
+        : r.status === 429 ? "Trop de demandes. Réessaie dans quelques minutes."
+        : "Cette adresse ne peut pas être utilisée. Essaie-en une autre.";
+    } catch (x) {
+      m.textContent = "Connexion impossible. Vérifie ton réseau et réessaie.";
+    }
+    btn.disabled = false; btn.textContent = "Envoyer l’e-mail de confirmation";
+  });
+</script>
+</body>
+</html>
